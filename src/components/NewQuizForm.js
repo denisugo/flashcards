@@ -1,14 +1,21 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import ROUTES from "../app/routes";
+import { addCard } from "../features/cards/CardsSlice";
+import { thunkActionCreator } from "../features/quizzes/QuizzesSlice";
+import { topicsSelector } from "../features/topics/TopicSlice";
 
 export default function NewQuizForm() {
   const [name, setName] = useState("");
   const [cards, setCards] = useState([]);
   const [topicId, setTopicId] = useState("");
   const history = useHistory();
-  const topics = {};
+
+  const topics = useSelector(topicsSelector);
+
+  const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -19,7 +26,25 @@ export default function NewQuizForm() {
     const cardIds = [];
 
     // create the new cards here and add each card's id to cardIds
+
+    for (const card of cards) {
+      const id = uuidv4();
+      cardIds.push(id);
+      const cardsToDispatch = {
+        ...card,
+        id: id,
+      };
+      dispatch(addCard(cardsToDispatch));
+    }
     // create the new quiz here
+    dispatch(
+      thunkActionCreator({
+        id: uuidv4(),
+        name: name,
+        topicId: topicId,
+        cardIds: cardIds,
+      })
+    );
 
     history.push(ROUTES.quizzesRoute());
   };
